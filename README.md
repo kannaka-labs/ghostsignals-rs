@@ -426,6 +426,14 @@ Added:
 - `serde` - Serialization support (enabled by default)
 - No optional features currently - library is lightweight by design
 
+## Where this sits in the constellation
+
+This crate is the market engine; the live markets it scores run in the Kannaka observatory and are
+read and traded from an AI through the command center MCP (`list_markets`, `get_market`,
+`place_bet`, `propose_prediction`), which [QuantumOS's hub](https://github.com/kannaka-labs/QuantumOS/tree/main/tools/qos-hub)
+(ADR-0027) can front under its allow / ask / deny policy. The library itself stays dependency-light
+and has no network surface of its own.
+
 ## License
 
 This project is licensed under the Space Child License v1.0 — see [LICENSE](./LICENSE) for the terms.

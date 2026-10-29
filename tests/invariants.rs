@@ -5,9 +5,8 @@
 
 use approx::assert_relative_eq;
 use ghostsignals::{
-    convergence, cost, efficiency, entropy, execute_trade, prices, trade_cost, Engine,
-    LmsrError, Market, MarketError, MarketSignal, MarketState, Portfolio, SignalSeries,
-    TradeError,
+    convergence, cost, efficiency, entropy, execute_trade, prices, trade_cost, Engine, LmsrError,
+    Market, MarketError, MarketSignal, MarketState, Portfolio, SignalSeries, TradeError,
 };
 use uuid::Uuid;
 
@@ -148,7 +147,10 @@ fn convergence_never_returns_nan() {
     let a = MarketSignal::new(id, vec![0.5, 0.5], 0, 0.0);
     let b = MarketSignal::new(id, vec![f64::NAN, 0.5], 1, 0.0);
     let c = convergence(&[&a, &b]);
-    assert!(c.is_finite() && (0.0..=1.0).contains(&c), "convergence = {c}");
+    assert!(
+        c.is_finite() && (0.0..=1.0).contains(&c),
+        "convergence = {c}"
+    );
 }
 
 #[test]
@@ -234,7 +236,10 @@ fn trade_after_resolve_is_refused() {
     let mut market = binary_market(100.0);
     market.resolve(1).unwrap();
     assert!(execute_trade(&mut market, trader, 0, 1.0, &mut portfolio).is_err());
-    assert!(matches!(market.trade_cost(0, 1.0), Err(MarketError::MarketClosed)));
+    assert!(matches!(
+        market.trade_cost(0, 1.0),
+        Err(MarketError::MarketClosed)
+    ));
 }
 
 #[test]
@@ -245,7 +250,10 @@ fn resolve_is_idempotent_for_the_same_outcome() {
     market.resolve(1).unwrap();
     assert_eq!(market.resolved_outcome(), Some(1));
     // A different outcome is a contradiction and must be refused.
-    assert!(matches!(market.resolve(0), Err(MarketError::MarketResolved)));
+    assert!(matches!(
+        market.resolve(0),
+        Err(MarketError::MarketResolved)
+    ));
     assert_eq!(market.resolved_outcome(), Some(1));
     assert_eq!(market.state(), MarketState::Resolved);
 }
@@ -255,7 +263,10 @@ fn resolve_with_no_trades_and_out_of_bounds() {
     let mut market = binary_market(100.0);
     assert!(matches!(
         market.resolve(2),
-        Err(MarketError::InvalidOutcome { outcome: 2, num_outcomes: 2 })
+        Err(MarketError::InvalidOutcome {
+            outcome: 2,
+            num_outcomes: 2
+        })
     ));
     assert_eq!(market.state(), MarketState::Open);
     market.resolve(0).unwrap();
@@ -279,7 +290,10 @@ fn execute_trade_refuses_zero_and_non_finite_amounts() {
     ));
     for amount in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
         let err = execute_trade(&mut market, trader, 0, amount, &mut portfolio).unwrap_err();
-        assert!(matches!(err, TradeError::InvalidAmount(_)), "amount {amount}: {err:?}");
+        assert!(
+            matches!(err, TradeError::InvalidAmount(_)),
+            "amount {amount}: {err:?}"
+        );
     }
     // Nothing leaked into state.
     assert_eq!(market.trade_stats(), (0, 0.0));
@@ -296,7 +310,10 @@ fn deserialized_market_is_validated() {
     let mut v = serde_json::to_value(&market).unwrap();
 
     v["liquidity"] = serde_json::json!(0.0);
-    assert!(serde_json::from_value::<Market>(v.clone()).is_err(), "b = 0 accepted");
+    assert!(
+        serde_json::from_value::<Market>(v.clone()).is_err(),
+        "b = 0 accepted"
+    );
 
     v["liquidity"] = serde_json::json!(100.0);
     v["quantities"] = serde_json::json!([0.0]);
@@ -306,11 +323,17 @@ fn deserialized_market_is_validated() {
     );
 
     v["quantities"] = serde_json::json!([0.0, -1.0]);
-    assert!(serde_json::from_value::<Market>(v.clone()).is_err(), "negative q accepted");
+    assert!(
+        serde_json::from_value::<Market>(v.clone()).is_err(),
+        "negative q accepted"
+    );
 
     v["quantities"] = serde_json::json!([0.0, 0.0]);
     v["outcomes"] = serde_json::json!(["A", "a"]);
-    assert!(serde_json::from_value::<Market>(v.clone()).is_err(), "duplicate labels accepted");
+    assert!(
+        serde_json::from_value::<Market>(v.clone()).is_err(),
+        "duplicate labels accepted"
+    );
 
     v["outcomes"] = serde_json::json!(["A", "B"]);
     v["resolved_outcome"] = serde_json::json!(5);
@@ -331,7 +354,10 @@ fn deserialized_portfolio_is_validated() {
     portfolio.add_cash(10.0).unwrap();
     let mut v = serde_json::to_value(&portfolio).unwrap();
     v["cash"] = serde_json::json!(-1.0);
-    assert!(serde_json::from_value::<Portfolio>(v).is_err(), "negative cash accepted");
+    assert!(
+        serde_json::from_value::<Portfolio>(v).is_err(),
+        "negative cash accepted"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -377,7 +403,10 @@ fn engine_settle_pays_winners_once_and_is_bounded() {
     engine.trade(market_id, alice, 1, 5.0).unwrap();
 
     // Settle before resolve is refused.
-    assert!(matches!(engine.settle(market_id), Err(MarketError::MarketNotResolved)));
+    assert!(matches!(
+        engine.settle(market_id),
+        Err(MarketError::MarketNotResolved)
+    ));
 
     let pool = engine.market(market_id).unwrap().pool();
     engine.resolve(market_id, 1).unwrap();
@@ -393,8 +422,16 @@ fn engine_settle_pays_winners_once_and_is_bounded() {
     let again = engine.settle(market_id).unwrap();
     assert!(again.is_empty());
     assert_eq!(engine.portfolio(alice).unwrap().cash(), alice_cash);
-    assert!(engine.portfolio(alice).unwrap().position(market_id, 1).is_none());
-    assert!(engine.portfolio(alice).unwrap().position(market_id, 0).is_none());
+    assert!(engine
+        .portfolio(alice)
+        .unwrap()
+        .position(market_id, 1)
+        .is_none());
+    assert!(engine
+        .portfolio(alice)
+        .unwrap()
+        .position(market_id, 0)
+        .is_none());
 }
 
 #[test]

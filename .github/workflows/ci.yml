@@ -28,6 +28,8 @@ jobs:
         run: cargo test --release --test properties
         env:
           PROPTEST_CASES: "4000"
+      - name: fmt
+        run: cargo fmt --check
       - name: Clippy
         run: cargo clippy --all-targets -- -D warnings
       - name: Docs
