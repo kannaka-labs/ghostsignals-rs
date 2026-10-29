@@ -620,11 +620,23 @@ mod tests {
     #[test]
     fn test_position_rejects_non_finite_and_wrong_sign() {
         let mut pos = Position::new();
-        assert!(matches!(pos.apply_trade(f64::NAN, 1.0), Err(TradeError::InvalidAmount(_))));
-        assert!(matches!(pos.apply_trade(1.0, f64::INFINITY), Err(TradeError::InvalidAmount(_))));
-        assert!(matches!(pos.apply_trade(1.0, -1.0), Err(TradeError::InvalidAmount(_))));
+        assert!(matches!(
+            pos.apply_trade(f64::NAN, 1.0),
+            Err(TradeError::InvalidAmount(_))
+        ));
+        assert!(matches!(
+            pos.apply_trade(1.0, f64::INFINITY),
+            Err(TradeError::InvalidAmount(_))
+        ));
+        assert!(matches!(
+            pos.apply_trade(1.0, -1.0),
+            Err(TradeError::InvalidAmount(_))
+        ));
         pos.apply_trade(1.0, 0.5).unwrap();
-        assert!(matches!(pos.apply_trade(-1.0, 0.5), Err(TradeError::InvalidAmount(_))));
+        assert!(matches!(
+            pos.apply_trade(-1.0, 0.5),
+            Err(TradeError::InvalidAmount(_))
+        ));
         assert_eq!(pos.shares, 1.0);
     }
 
@@ -672,7 +684,10 @@ mod tests {
         assert!(!portfolio.can_afford(1500.0));
 
         for bad in [-1.0, f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
-            assert!(matches!(portfolio.add_cash(bad), Err(TradeError::InvalidAmount(_))));
+            assert!(matches!(
+                portfolio.add_cash(bad),
+                Err(TradeError::InvalidAmount(_))
+            ));
         }
         assert_eq!(portfolio.cash(), 1000.0);
         // Adding zero is a harmless no-op.
@@ -680,7 +695,10 @@ mod tests {
         assert_eq!(portfolio.cash(), 1000.0);
         // Overflowing the balance is refused.
         portfolio.add_cash(f64::MAX).unwrap();
-        assert!(matches!(portfolio.add_cash(f64::MAX), Err(TradeError::InvalidAmount(_))));
+        assert!(matches!(
+            portfolio.add_cash(f64::MAX),
+            Err(TradeError::InvalidAmount(_))
+        ));
     }
 
     #[test]
@@ -745,7 +763,10 @@ mod tests {
 
         // Try to sell without owning any shares
         let result = execute_trade(&mut market, trader_id, 0, -10.0, &mut portfolio);
-        assert!(matches!(result, Err(TradeError::InsufficientPosition { .. })));
+        assert!(matches!(
+            result,
+            Err(TradeError::InsufficientPosition { .. })
+        ));
         assert_eq!(market.quantities(), &[0.0, 0.0]);
     }
 

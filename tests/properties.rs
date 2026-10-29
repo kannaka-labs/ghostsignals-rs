@@ -6,8 +6,8 @@
 
 use approx::assert_relative_eq;
 use ghostsignals::{
-    cost, entropy, normalized_entropy, prices, trade_cost, Engine, Market, MarketSignal,
-    Portfolio, SignalSeries, Trade,
+    cost, entropy, normalized_entropy, prices, trade_cost, Engine, Market, MarketSignal, Portfolio,
+    SignalSeries, Trade,
 };
 use proptest::prelude::*;
 use uuid::Uuid;
@@ -37,7 +37,10 @@ fn config() -> ProptestConfig {
         .ok()
         .and_then(|v| v.parse().ok())
         .unwrap_or(512);
-    ProptestConfig { cases, ..ProptestConfig::default() }
+    ProptestConfig {
+        cases,
+        ..ProptestConfig::default()
+    }
 }
 
 proptest! {
@@ -383,10 +386,25 @@ fn trade_history_is_in_execution_order() {
     for i in 0..10 {
         executed.push(engine.trade(market_id, trader, i % 2, 1.0).unwrap().id);
     }
-    let recorded: Vec<Uuid> = engine.portfolio(trader).unwrap().trades().iter().map(|t| t.id).collect();
+    let recorded: Vec<Uuid> = engine
+        .portfolio(trader)
+        .unwrap()
+        .trades()
+        .iter()
+        .map(|t| t.id)
+        .collect();
     assert_eq!(recorded, executed);
-    let ts: Vec<_> = engine.portfolio(trader).unwrap().trades().iter().map(|t| t.timestamp).collect();
-    assert!(ts.windows(2).all(|w| w[0] <= w[1]), "timestamps not monotone: {ts:?}");
+    let ts: Vec<_> = engine
+        .portfolio(trader)
+        .unwrap()
+        .trades()
+        .iter()
+        .map(|t| t.timestamp)
+        .collect();
+    assert!(
+        ts.windows(2).all(|w| w[0] <= w[1]),
+        "timestamps not monotone: {ts:?}"
+    );
     let p = prices(engine.market(market_id).unwrap().quantities(), 10.0).unwrap();
     assert_relative_eq!(p[0], 0.5, epsilon = 1e-12);
 }

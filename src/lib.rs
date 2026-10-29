@@ -28,19 +28,19 @@
 //! The README examples below are compiled as doctests.
 #![doc = include_str!("../README.md")]
 
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
-use serde::{Deserialize, Serialize};
 
 pub mod lmsr;
 pub mod market;
-pub mod trading;
 pub mod signals;
+pub mod trading;
 
 pub use lmsr::*;
 pub use market::*;
-pub use trading::*;
 pub use signals::*;
+pub use trading::*;
 
 /// High-level prediction market engine
 ///
@@ -99,7 +99,9 @@ impl Engine {
         outcome: usize,
         amount: f64,
     ) -> Result<Trade, TradeError> {
-        let market = self.markets.get_mut(&market_id)
+        let market = self
+            .markets
+            .get_mut(&market_id)
             .ok_or(TradeError::MarketNotFound)?;
 
         let portfolio = self
@@ -111,14 +113,18 @@ impl Engine {
 
     /// Get current market prices
     pub fn prices(&self, market_id: MarketId) -> Result<Vec<f64>, MarketError> {
-        let market = self.markets.get(&market_id)
+        let market = self
+            .markets
+            .get(&market_id)
             .ok_or(MarketError::MarketNotFound)?;
         Ok(market.prices())
     }
 
     /// Resolve a market (idempotent for the same outcome, see [`Market::resolve`])
     pub fn resolve(&mut self, market_id: MarketId, outcome: usize) -> Result<(), MarketError> {
-        let market = self.markets.get_mut(&market_id)
+        let market = self
+            .markets
+            .get_mut(&market_id)
             .ok_or(MarketError::MarketNotFound)?;
         market.resolve(outcome)
     }
@@ -134,7 +140,9 @@ impl Engine {
     /// `MarketNotFound`, or `MarketNotResolved` if the market has not been
     /// resolved yet.
     pub fn settle(&mut self, market_id: MarketId) -> Result<Vec<(TraderId, f64)>, MarketError> {
-        let market = self.markets.get(&market_id)
+        let market = self
+            .markets
+            .get(&market_id)
             .ok_or(MarketError::MarketNotFound)?;
         let winner = match (market.state(), market.resolved_outcome()) {
             (MarketState::Resolved, Some(winner)) => winner,
@@ -153,7 +161,9 @@ impl Engine {
 
     /// Get market signal
     pub fn signal(&self, market_id: MarketId) -> Result<MarketSignal, MarketError> {
-        let market = self.markets.get(&market_id)
+        let market = self
+            .markets
+            .get(&market_id)
             .ok_or(MarketError::MarketNotFound)?;
         Ok(market.signal())
     }
@@ -256,9 +266,18 @@ mod tests {
     fn test_unknown_market_and_trader() {
         let mut engine = Engine::new();
         let missing = Uuid::new_v4();
-        assert!(matches!(engine.prices(missing), Err(MarketError::MarketNotFound)));
-        assert!(matches!(engine.resolve(missing, 0), Err(MarketError::MarketNotFound)));
-        assert!(matches!(engine.signal(missing), Err(MarketError::MarketNotFound)));
+        assert!(matches!(
+            engine.prices(missing),
+            Err(MarketError::MarketNotFound)
+        ));
+        assert!(matches!(
+            engine.resolve(missing, 0),
+            Err(MarketError::MarketNotFound)
+        ));
+        assert!(matches!(
+            engine.signal(missing),
+            Err(MarketError::MarketNotFound)
+        ));
         assert!(matches!(
             engine.trade(missing, Uuid::new_v4(), 0, 1.0),
             Err(TradeError::MarketNotFound)

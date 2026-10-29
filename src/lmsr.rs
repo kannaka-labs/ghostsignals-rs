@@ -259,14 +259,35 @@ mod tests {
     #[test]
     fn test_cost_invalid_inputs() {
         assert!(matches!(cost(&[], 100.0), Err(LmsrError::EmptyQuantities)));
-        assert!(matches!(cost(&[0.0, 0.0], 0.0), Err(LmsrError::InvalidLiquidity(_))));
-        assert!(matches!(cost(&[0.0, 0.0], -10.0), Err(LmsrError::InvalidLiquidity(_))));
-        assert!(matches!(cost(&[0.0, 0.0], f64::NAN), Err(LmsrError::InvalidLiquidity(_))));
-        assert!(matches!(cost(&[0.0, 0.0], f64::INFINITY), Err(LmsrError::InvalidLiquidity(_))));
-        assert!(matches!(cost(&[f64::NAN, 0.0], 1.0), Err(LmsrError::NonFinite { .. })));
-        assert!(matches!(cost(&[f64::INFINITY, 0.0], 1.0), Err(LmsrError::NonFinite { .. })));
+        assert!(matches!(
+            cost(&[0.0, 0.0], 0.0),
+            Err(LmsrError::InvalidLiquidity(_))
+        ));
+        assert!(matches!(
+            cost(&[0.0, 0.0], -10.0),
+            Err(LmsrError::InvalidLiquidity(_))
+        ));
+        assert!(matches!(
+            cost(&[0.0, 0.0], f64::NAN),
+            Err(LmsrError::InvalidLiquidity(_))
+        ));
+        assert!(matches!(
+            cost(&[0.0, 0.0], f64::INFINITY),
+            Err(LmsrError::InvalidLiquidity(_))
+        ));
+        assert!(matches!(
+            cost(&[f64::NAN, 0.0], 1.0),
+            Err(LmsrError::NonFinite { .. })
+        ));
+        assert!(matches!(
+            cost(&[f64::INFINITY, 0.0], 1.0),
+            Err(LmsrError::NonFinite { .. })
+        ));
         // q / b overflows for tiny b and huge q.
-        assert!(matches!(cost(&[1e300, 0.0], 1e-300), Err(LmsrError::NumericalOverflow)));
+        assert!(matches!(
+            cost(&[1e300, 0.0], 1e-300),
+            Err(LmsrError::NumericalOverflow)
+        ));
     }
 
     #[test]
@@ -345,7 +366,13 @@ mod tests {
     fn test_trade_cost_invalid_outcome() {
         let quantities = vec![0.0, 0.0];
         let result = trade_cost(&quantities, 100.0, 2, 10.0);
-        assert!(matches!(result, Err(LmsrError::InvalidOutcome { outcome: 2, num_outcomes: 2 })));
+        assert!(matches!(
+            result,
+            Err(LmsrError::InvalidOutcome {
+                outcome: 2,
+                num_outcomes: 2
+            })
+        ));
     }
 
     #[test]
@@ -353,7 +380,10 @@ mod tests {
         for amount in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
             assert!(matches!(
                 trade_cost(&[0.0, 0.0], 100.0, 0, amount),
-                Err(LmsrError::NonFinite { what: "trade amount", .. })
+                Err(LmsrError::NonFinite {
+                    what: "trade amount",
+                    ..
+                })
             ));
         }
     }

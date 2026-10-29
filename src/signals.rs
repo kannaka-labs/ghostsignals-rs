@@ -29,12 +29,7 @@ pub struct MarketSignal {
 
 impl MarketSignal {
     /// Create a new market signal
-    pub fn new(
-        market_id: MarketId,
-        prices: Vec<f64>,
-        trade_count: u64,
-        volume: f64,
-    ) -> Self {
+    pub fn new(market_id: MarketId, prices: Vec<f64>, trade_count: u64, volume: f64) -> Self {
         Self {
             market_id,
             prices,
@@ -100,7 +95,7 @@ impl SignalSeries {
     /// Add a new signal to the series
     pub fn push(&mut self, signal: MarketSignal) {
         self.signals.push_back(signal);
-        
+
         // Maintain maximum length
         while self.signals.len() > self.max_length {
             self.signals.pop_front();
@@ -129,7 +124,8 @@ impl SignalSeries {
 
     /// Calculate price volatility for an outcome (population standard deviation)
     pub fn volatility(&self, outcome: usize) -> f64 {
-        let prices: Vec<f64> = self.signals
+        let prices: Vec<f64> = self
+            .signals
             .iter()
             .filter_map(|s| s.prices.get(outcome).copied())
             .collect();
@@ -142,7 +138,8 @@ impl SignalSeries {
             return 0.0;
         }
 
-        let recent: Vec<f64> = self.signals
+        let recent: Vec<f64> = self
+            .signals
             .iter()
             .rev()
             .take(window)
@@ -155,7 +152,7 @@ impl SignalSeries {
 
         let first = recent[recent.len() - 1];
         let last = recent[0];
-        
+
         (last - first).signum()
     }
 
@@ -165,7 +162,8 @@ impl SignalSeries {
             return false;
         }
 
-        let recent: Vec<f64> = self.signals
+        let recent: Vec<f64> = self
+            .signals
             .iter()
             .rev()
             .take(5)
@@ -177,7 +175,7 @@ impl SignalSeries {
         }
 
         std_dev(&recent) < threshold
-}
+    }
 
     /// Calculate momentum for an outcome
     pub fn momentum(&self, outcome: usize) -> f64 {
@@ -185,7 +183,8 @@ impl SignalSeries {
             return 0.0;
         }
 
-        let prices: Vec<f64> = self.signals
+        let prices: Vec<f64> = self
+            .signals
             .iter()
             .rev()
             .take(3)
@@ -200,13 +199,13 @@ impl SignalSeries {
         let latest = prices[0];
         let middle = prices[1];
         let earliest = prices[2];
-        
+
         (latest - middle) - (middle - earliest)
     }
 }
 
 /// Calculate convergence of market signals
-/// 
+///
 /// Returns a value between 0.0 and 1.0 where:
 /// - 0.0 = highly volatile, not converged
 /// - 1.0 = fully converged, stable prices
@@ -256,7 +255,7 @@ fn std_dev(values: &[f64]) -> f64 {
 }
 
 /// Extract price history for a specific outcome
-/// 
+///
 /// Returns a vector of (timestamp, price) pairs
 pub fn price_history(signals: &[&MarketSignal], outcome: usize) -> Vec<(f64, f64)> {
     signals
@@ -310,7 +309,7 @@ pub fn max_entropy(num_outcomes: usize) -> f64 {
     if num_outcomes <= 1 {
         return 0.0;
     }
-    
+
     (num_outcomes as f64).ln()
 }
 
@@ -318,7 +317,7 @@ pub fn max_entropy(num_outcomes: usize) -> f64 {
 pub fn normalized_entropy(prices: &[f64]) -> f64 {
     let ent = entropy(prices);
     let max_ent = max_entropy(prices.len());
-    
+
     if max_ent == 0.0 {
         0.0
     } else {
@@ -346,8 +345,9 @@ pub fn efficiency(signals: &[&MarketSignal]) -> f64 {
     let mut total_movement = 0.0;
     for i in 1..signals.len() {
         for j in 0..signals[i].prices.len() {
-            if let (Some(prev), Some(curr)) = 
-                (signals[i-1].prices.get(j), signals[i].prices.get(j)) {
+            if let (Some(prev), Some(curr)) =
+                (signals[i - 1].prices.get(j), signals[i].prices.get(j))
+            {
                 total_movement += (curr - prev).abs();
             }
         }
@@ -370,12 +370,12 @@ pub fn detect_anomalies(signals: &[&MarketSignal], threshold: f64) -> Vec<usize>
     let mut anomalies = Vec::new();
 
     for i in 1..signals.len() {
-        let prev = &signals[i-1];
+        let prev = &signals[i - 1];
         let curr = &signals[i];
 
         for j in 0..curr.prices.len() {
-            if let (Some(&prev_price), Some(&curr_price)) = 
-                (prev.prices.get(j), curr.prices.get(j)) {
+            if let (Some(&prev_price), Some(&curr_price)) = (prev.prices.get(j), curr.prices.get(j))
+            {
                 let change = (curr_price - prev_price).abs();
                 if change > threshold {
                     anomalies.push(i);
@@ -391,7 +391,7 @@ pub fn detect_anomalies(signals: &[&MarketSignal], threshold: f64) -> Vec<usize>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use approx::{assert_relative_eq, assert_abs_diff_eq};
+    use approx::{assert_abs_diff_eq, assert_relative_eq};
     use uuid::Uuid;
 
     #[test]
@@ -409,7 +409,7 @@ mod tests {
     #[test]
     fn test_signal_entropy() {
         let market_id = Uuid::new_v4();
-        
+
         // Equal probabilities should have high entropy
         let equal_signal = MarketSignal::new(market_id, vec![0.5, 0.5], 0, 0.0);
         let equal_entropy = equal_signal.entropy();
@@ -433,7 +433,7 @@ mod tests {
     #[test]
     fn test_signal_convergence() {
         let market_id = Uuid::new_v4();
-        
+
         let converged = MarketSignal::new(market_id, vec![0.95, 0.05], 0, 0.0);
         assert!(converged.is_converged(0.5));
 
@@ -454,7 +454,7 @@ mod tests {
 
         // Should only keep last 3
         assert_eq!(series.signals().len(), 3);
-        
+
         let latest = series.latest().unwrap();
         assert_eq!(latest.trade_count, 4);
     }
@@ -472,7 +472,7 @@ mod tests {
         assert_abs_diff_eq!(certain_entropy, 0.0, epsilon = 1e-10);
 
         // Three equal outcomes
-        let three_equal = vec![1.0/3.0, 1.0/3.0, 1.0/3.0];
+        let three_equal = vec![1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0];
         let three_entropy = entropy(&three_equal);
         assert_relative_eq!(three_entropy, 3.0_f64.ln(), epsilon = 1e-10);
     }
@@ -496,15 +496,15 @@ mod tests {
     #[test]
     fn test_convergence_calculation() {
         let market_id = Uuid::new_v4();
-        
+
         // Stable signals should show high convergence
         let signals: Vec<MarketSignal> = (0..5)
             .map(|i| MarketSignal::new(market_id, vec![0.6, 0.4], i, i as f64))
             .collect();
         let signal_refs: Vec<&MarketSignal> = signals.iter().collect();
-        
+
         let stable_convergence = convergence(&signal_refs);
-        
+
         // Volatile signals should show low convergence
         let volatile_signals: Vec<MarketSignal> = (0..5)
             .map(|i| {
@@ -513,9 +513,9 @@ mod tests {
             })
             .collect();
         let volatile_refs: Vec<&MarketSignal> = volatile_signals.iter().collect();
-        
+
         let volatile_convergence = convergence(&volatile_refs);
-        
+
         assert!(stable_convergence > volatile_convergence);
     }
 
@@ -524,20 +524,25 @@ mod tests {
         let market_id = Uuid::new_v4();
         let signals: Vec<MarketSignal> = (0..3)
             .map(|i| {
-                let mut signal = MarketSignal::new(market_id, vec![i as f64 * 0.1, 1.0 - i as f64 * 0.1], i, i as f64);
+                let mut signal = MarketSignal::new(
+                    market_id,
+                    vec![i as f64 * 0.1, 1.0 - i as f64 * 0.1],
+                    i,
+                    i as f64,
+                );
                 signal.timestamp = DateTime::from_timestamp(1000 + i as i64, 0).unwrap();
                 signal
             })
             .collect();
         let signal_refs: Vec<&MarketSignal> = signals.iter().collect();
-        
+
         let history = price_history(&signal_refs, 0);
         assert_eq!(history.len(), 3);
-        
+
         // Check timestamps are increasing
         assert!(history[1].0 > history[0].0);
         assert!(history[2].0 > history[1].0);
-        
+
         // Check prices are increasing
         assert!(history[1].1 > history[0].1);
         assert!(history[2].1 > history[1].1);
@@ -586,7 +591,12 @@ mod tests {
         // Add downward trending signals
         for i in 0..3 {
             let price = 0.7 - i as f64 * 0.1;
-            let signal = MarketSignal::new(market_id, vec![price, 1.0 - price], (i + 5) as u64, (i + 5) as f64);
+            let signal = MarketSignal::new(
+                market_id,
+                vec![price, 1.0 - price],
+                (i + 5) as u64,
+                (i + 5) as f64,
+            );
             series.push(signal);
         }
 
@@ -627,7 +637,7 @@ mod tests {
         // Anomalous signal (large jump from 0.5 to 0.9)
         signals.push(MarketSignal::new(market_id, vec![0.9, 0.1], 3, 3.0));
 
-        // Return to normal 
+        // Return to normal
         signals.push(MarketSignal::new(market_id, vec![0.5, 0.5], 4, 4.0));
 
         let signal_refs: Vec<&MarketSignal> = signals.iter().collect();
@@ -647,10 +657,10 @@ mod tests {
             MarketSignal::new(market_id, vec![0.7, 0.3], 2, 30.0),
         ];
         let signal_refs: Vec<&MarketSignal> = signals.iter().collect();
-        
+
         let eff = efficiency(&signal_refs);
         assert!(eff > 0.0); // Should have some efficiency measure
-        // 0.4 of movement over 20 units of volume traded in the window.
+                            // 0.4 of movement over 20 units of volume traded in the window.
         assert_relative_eq!(eff, 0.4 / 20.0, epsilon = 1e-12);
     }
 

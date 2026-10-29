@@ -144,7 +144,10 @@ fn validate_outcomes(outcomes: &[String]) -> Result<(), MarketError> {
         if label.trim().is_empty() {
             return Err(MarketError::EmptyOutcomeLabel(i));
         }
-        if outcomes[..i].iter().any(|prev| prev.eq_ignore_ascii_case(label)) {
+        if outcomes[..i]
+            .iter()
+            .any(|prev| prev.eq_ignore_ascii_case(label))
+        {
             return Err(MarketError::DuplicateOutcomeLabel(label.clone()));
         }
     }
@@ -218,14 +221,20 @@ impl Market {
                 self.outcomes.len()
             )));
         }
-        if let Some(&q) = self.quantities.iter().find(|q| !(q.is_finite() && **q >= 0.0)) {
+        if let Some(&q) = self
+            .quantities
+            .iter()
+            .find(|q| !(q.is_finite() && **q >= 0.0))
+        {
             return Err(MarketError::InvalidMarketState(format!(
                 "quantity {q} is negative or non-finite"
             )));
         }
         for (name, value) in [("total_volume", self.total_volume), ("pool", self.pool)] {
             if !value.is_finite() {
-                return Err(MarketError::InvalidMarketState(format!("{name} is {value}")));
+                return Err(MarketError::InvalidMarketState(format!(
+                    "{name} is {value}"
+                )));
             }
         }
         match (self.state, self.resolved_outcome) {
@@ -335,7 +344,12 @@ impl Market {
             });
         }
 
-        Ok(lmsr::trade_cost(&self.quantities, self.liquidity, outcome, amount)?)
+        Ok(lmsr::trade_cost(
+            &self.quantities,
+            self.liquidity,
+            outcome,
+            amount,
+        )?)
     }
 
     /// Update market quantities after a trade
@@ -492,7 +506,11 @@ mod tests {
     fn test_market_creation_validation() {
         // Empty question
         assert!(matches!(
-            Market::new("".to_string(), vec!["A".to_string(), "B".to_string()], 100.0),
+            Market::new(
+                "".to_string(),
+                vec!["A".to_string(), "B".to_string()],
+                100.0
+            ),
             Err(MarketError::EmptyQuestion)
         ));
 
@@ -504,27 +522,47 @@ mod tests {
 
         // Invalid liquidity
         assert!(matches!(
-            Market::new("Question?".to_string(), vec!["A".to_string(), "B".to_string()], 0.0),
+            Market::new(
+                "Question?".to_string(),
+                vec!["A".to_string(), "B".to_string()],
+                0.0
+            ),
             Err(MarketError::InvalidLiquidity(_))
         ));
 
         assert!(matches!(
-            Market::new("Question?".to_string(), vec!["A".to_string(), "B".to_string()], -10.0),
+            Market::new(
+                "Question?".to_string(),
+                vec!["A".to_string(), "B".to_string()],
+                -10.0
+            ),
             Err(MarketError::InvalidLiquidity(_))
         ));
 
         assert!(matches!(
-            Market::new("Question?".to_string(), vec!["A".to_string(), "B".to_string()], f64::NAN),
+            Market::new(
+                "Question?".to_string(),
+                vec!["A".to_string(), "B".to_string()],
+                f64::NAN
+            ),
             Err(MarketError::InvalidLiquidity(_))
         ));
 
         assert!(matches!(
-            Market::new("Question?".to_string(), vec!["A".to_string(), "".to_string()], 1.0),
+            Market::new(
+                "Question?".to_string(),
+                vec!["A".to_string(), "".to_string()],
+                1.0
+            ),
             Err(MarketError::EmptyOutcomeLabel(1))
         ));
 
         assert!(matches!(
-            Market::new("Question?".to_string(), vec!["A".to_string(), "a".to_string()], 1.0),
+            Market::new(
+                "Question?".to_string(),
+                vec!["A".to_string(), "a".to_string()],
+                1.0
+            ),
             Err(MarketError::DuplicateOutcomeLabel(_))
         ));
     }
@@ -560,10 +598,16 @@ mod tests {
         .unwrap();
         assert!(market.validate().is_ok());
         market.resolved_outcome = Some(0);
-        assert!(matches!(market.validate(), Err(MarketError::InvalidMarketState(_))));
+        assert!(matches!(
+            market.validate(),
+            Err(MarketError::InvalidMarketState(_))
+        ));
         market.resolved_outcome = None;
         market.quantities = vec![0.0];
-        assert!(matches!(market.validate(), Err(MarketError::InvalidMarketState(_))));
+        assert!(matches!(
+            market.validate(),
+            Err(MarketError::InvalidMarketState(_))
+        ));
     }
 
     #[test]
@@ -695,7 +739,7 @@ mod tests {
         .unwrap();
 
         let entropy = market.entropy();
-        
+
         // For equal probabilities (0.5, 0.5), entropy should be ln(2)
         assert_relative_eq!(entropy, 2.0_f64.ln(), epsilon = 1e-10);
     }
@@ -727,13 +771,19 @@ mod tests {
 
         assert!(matches!(
             market.trade_cost(2, 10.0),
-            Err(MarketError::InvalidOutcome { outcome: 2, num_outcomes: 2 })
+            Err(MarketError::InvalidOutcome {
+                outcome: 2,
+                num_outcomes: 2
+            })
         ));
 
         let mut market_mut = market;
         assert!(matches!(
             market_mut.resolve(2),
-            Err(MarketError::InvalidOutcome { outcome: 2, num_outcomes: 2 })
+            Err(MarketError::InvalidOutcome {
+                outcome: 2,
+                num_outcomes: 2
+            })
         ));
     }
 
