@@ -463,7 +463,7 @@ If you use ghostsignals in academic work, please cite:
   title = {ghostsignals: Prediction Markets as Collective Intelligence},
   author = {ghostmagicOS},
   year = {2026},
-  url = {https://github.com/NickFlach/ghostsignals-rs}
+  url = {https://github.com/kannaka-labs/ghostsignals-rs}
 }
 ```
 
