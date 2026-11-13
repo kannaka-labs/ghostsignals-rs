@@ -8,7 +8,7 @@ Prediction markets as collective intelligence using the Logarithmic Market Scori
 
 > *"When agents trade on what they believe, the market price converges to the collective's true estimate — emergence from interference."*
 
-Part of the [ghostmagicOS](https://github.com/ghostmagicOS) ecosystem: `dx/dt = f(x) - Iηx`  
+Part of the [Kannaka Labs](https://github.com/kannaka-labs) constellation: `dx/dt = f(x) - Iηx`  
 The market IS the interference term.
 
 ## Overview
@@ -423,13 +423,15 @@ Added:
 
 ## Features
 
-- `serde` - Serialization support (enabled by default)
-- No optional features currently - library is lightweight by design
+The crate has no Cargo features. `serde` is a required dependency, so every public type
+serializes without a feature flag.
 
 ## Where this sits in the constellation
 
-This crate is the market engine; the live markets it scores run in the Kannaka observatory and are
-read and traded from an AI through the command center MCP (`list_markets`, `get_market`,
+This crate is the reference market engine in Rust. The live markets in the Kannaka observatory do
+not run on it: they run on a JavaScript port of the same LMSR closed form
+([kannaka-radio `server/lmsr.js`](https://github.com/kannaka-labs/kannaka-radio/blob/master/server/lmsr.js)).
+Those markets are read and traded from an AI through the command center MCP (`list_markets`, `get_market`,
 `place_bet`, `propose_prediction`), which [QuantumOS's hub](https://github.com/kannaka-labs/QuantumOS/tree/main/tools/qos-hub)
 (ADR-0027) can front under its allow / ask / deny policy. The library itself stays dependency-light
 and has no network surface of its own.
@@ -452,7 +454,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 - [Robin Hanson's LMSR paper](https://mason.gmu.edu/~rhanson/mktscore.pdf)
 - [Prediction Markets: An Extended Bibliography](https://mason.gmu.edu/~rhanson/bibtex.html)
-- [ghostmagicOS ecosystem](https://github.com/ghostmagicOS)
+- [Kannaka Labs](https://github.com/kannaka-labs)
 
 ## Citation
 
@@ -461,7 +463,7 @@ If you use ghostsignals in academic work, please cite:
 ```bibtex
 @software{ghostsignals,
   title = {ghostsignals: Prediction Markets as Collective Intelligence},
-  author = {ghostmagicOS},
+  author = {Kannaka Labs},
   year = {2026},
   url = {https://github.com/kannaka-labs/ghostsignals-rs}
 }
@@ -469,4 +471,4 @@ If you use ghostsignals in academic work, please cite:
 
 ---
 
-*Part of the ghostmagicOS project: turning collective intelligence into executable reality.*
+*Part of Kannaka Labs: turning collective intelligence into executable reality.*
