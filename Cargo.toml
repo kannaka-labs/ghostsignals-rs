@@ -4,7 +4,7 @@ version = "0.2.0"
 edition = "2021"
 description = "Prediction markets as collective intelligence using LMSR"
 license-file = "LICENSE"
-repository = "https://github.com/NickFlach/ghostsignals-rs"
+repository = "https://github.com/kannaka-labs/ghostsignals-rs"
 keywords = ["prediction-markets", "lmsr", "trading", "collective-intelligence"]
 categories = ["algorithms", "finance"]
 
